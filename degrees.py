@@ -90,12 +90,47 @@ def shortest_path(source, target):
     that connect the source to the target.
 
     If no possible path, returns None.
-    """
+    """    
 
-    # TODO
-    raise NotImplementedError
+    #Check that the source is not the target
+    if source == target:
+        raise ValueError('Souce != target')
 
+    num_explored = 0
+    explored = set()
 
+    inital_node = Node(state=source, parent=None, action=None)
+    frontier = QueueFrontier() #Breadth first search to get the shortest path
+    frontier.add(inital_node)
+    
+    while True:
+        if frontier.empty():
+            return None
+        
+        node = frontier.remove()
+        num_explored += 1
+        explored.add(node.state)
+        
+        #Add the neighbors (actors related by film) to the frontier
+        for movie_id, person_id in neighbors_for_person(node.state):
+            if not frontier.contains_state(person_id) and person_id not in explored: 
+                #print(f'adding {people[person_id]["name"]} in {movies[movie_id]["title"]}')  
+                child =  Node(state=person_id, parent=node, action=movie_id) 
+                if child.state == target: #We have a solution
+                    return build_path(child)
+                else:
+                    frontier.add(child)  
+
+    return None #If we don't find a path
+
+def build_path(node):
+    path = []
+    while node.parent is not None:
+        path.append((node.action,node.state))
+        node = node.parent
+    path.reverse()
+    return path
+                      
 def person_id_for_name(name):
     """
     Returns the IMDB id for a person's name,
